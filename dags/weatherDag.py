@@ -9,15 +9,21 @@ import numpy as np
 
 
 def load_data(ds, **kwargs):
+	"""
+	Processes the json data, checks the types and enters into the
+	Postgres database.
+	"""
 
 	pg_hook  = PostgresHook(postgres_conn_id='weather_id')
 
 	file_name = str(datetime.now().date()) + '.json'
 	tot_name = os.path.join(os.path.dirname(__file__),'src/data', file_name)
 
+	# open the json datafile and read it in
 	with open(tot_name, 'r') as inputfile:
 		doc = json.load(inputfile)
 
+	# transform the data to the correct types and convert temp to celsius
 	city        = str(doc['name'])
 	country     = str(doc['sys']['country'])
 	lat         = float(doc['coord']['lat'])
@@ -30,6 +36,7 @@ def load_data(ds, **kwargs):
 	weather     = str(doc['weather'][0]['description'])
 	todays_date = datetime.now().date()
 
+	# check for nan's in the numeric values and then enter into the database
 	valid_data  = True
 	for valid in np.isnan([lat, lon, humid, press, min_temp, max_temp, temp]):
 		if valid is False:
@@ -58,37 +65,38 @@ def load_data(ds, **kwargs):
 		pg_hook.run(insert_cmd, parameters=row)
 
 
+# Define the default dag arguments.
 default_args = {
-				'owner' : 'Mike',
-				'depends_on_past' :False,
-				'email' :['mdh266@gmail.com'],
-			    'email_on_failure': False,
-			    'email_on_retry': False,
-			    'retries': 5,
-			    'retry_delay': timedelta(minutes=1)
-				}
+		'owner' : 'Mike',
+		'depends_on_past' :False,
+		'email' :['mdh266@gmail.com'],
+		'email_on_failure': False,
+		'email_on_retry': False,
+		'retries': 5,
+		'retry_delay': timedelta(minutes=1)
+		}
 
 
-
+# Define the dag, the start date and how frequently it runs.
+# I chose the dag to run everday by using 1440 minutes.
 dag = DAG(
-		  'weatherDag',
-		  default_args=default_args,
-		  start_date=datetime(2017,8,24),
-		  schedule_interval=timedelta(minutes=1440)
-		  )
+		'weatherDag',
+		default_args=default_args,
+		start_date=datetime(2017,8,24),
+		schedule_interval=timedelta(minutes=1440))
 
 
 task1 = BashOperator(
- 					task_id='get_weather',
- 					bash_command='python ~/airflow/dags/src/getWeather.py' ,
- 					dag=dag)
+			task_id='get_weather',
+			bash_command='python ~/airflow/dags/src/getWeather.py' ,
+			dag=dag)
 
 
 
 task2 =  PythonOperator(task_id='transform_load',
-	                   provide_context=True,
-	                   python_callable=load_data,
-	                   dag=dag)
+			provide_context=True,
+			python_callable=load_data,
+			dag=dag)
 
 
 task1 >> task2 

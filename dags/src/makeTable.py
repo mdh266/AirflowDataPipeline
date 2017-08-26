@@ -3,10 +3,15 @@ from sqlalchemy_utils import database_exists, create_database
 import psycopg2
 
 def make_database():
+    """
+    Make the Postgres database and create the table.
+    """
+
 	dbname    = 'WeatherDB'
 	username  = 'Mike'
 	tablename = 'weather_table'
 
+    # Note: I didn't make a password.
 	engine    = create_engine('postgresql+psycopg2://%s@localhost/%s'%(username,dbname))
 
 	if not database_exists(engine.url):
