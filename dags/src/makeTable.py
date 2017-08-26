@@ -28,7 +28,7 @@ def make_database():
                     latitude     REAL,
                     longitude    REAL,
                     todays_date  DATE,
-                    humudity     REAL,
+                    humidity     REAL,
                     pressure     REAL,
                     min_temp     REAL,
                     max_temp     REAL,

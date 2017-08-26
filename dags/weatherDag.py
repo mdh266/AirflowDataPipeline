@@ -52,7 +52,7 @@ def load_data(ds, **kwargs):
 					latitude, 
 					longitude,
 					todays_date, 
-					humudity, 
+					humidity, 
 					pressure, 
 					min_temp, 
 					max_temp, 
@@ -86,18 +86,20 @@ dag = DAG(
 		schedule_interval=timedelta(minutes=1440))
 
 
+# First task is to query get the weather from openweathermap.org.
 task1 = BashOperator(
 			task_id='get_weather',
 			bash_command='python ~/airflow/dags/src/getWeather.py' ,
 			dag=dag)
 
 
-
+# Second task is to process the data and load into the database.
 task2 =  PythonOperator(task_id='transform_load',
 			provide_context=True,
 			python_callable=load_data,
 			dag=dag)
 
-
+# Set task1 "upstream" of task2, i.e. task1 must be completed
+# before task2 can be started.
 task1 >> task2 
 
