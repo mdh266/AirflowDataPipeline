@@ -27,4 +27,3 @@ task1 = BashOperator(
  					bash_command='touch ~/desktop/hello_world.txt',
  					dag=dag)
 
-

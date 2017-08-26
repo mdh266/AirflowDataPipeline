@@ -6,7 +6,7 @@ import os
 
 def get_weather():
 
-	paramaters = {'q': 'Paris,fr', 'appid':C.API_KEY}
+	paramaters = {'q': 'Brooklyn, USA', 'appid':C.API_KEY}
 
 	result     = requests.get("http://api.openweathermap.org/data/2.5/weather?", paramaters)
 
@@ -14,7 +14,7 @@ def get_weather():
 
 		json_data = result.json()
 
-		file_name  = str(datetime.now().replace(microsecond=0)).replace(' ','T') + '.json'
+		file_name  = 'unprocessed_data.json'
 		tot_name   = os.path.join(os.path.dirname(__file__), 'unprocessed', file_name)
 
 		print tot_name
