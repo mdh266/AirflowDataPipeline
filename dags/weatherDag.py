@@ -5,20 +5,57 @@ from airflow.operators import PythonOperator
 import os
 from airflow.hooks import PostgresHook
 import json
-
-
-SRC_DIR = os.getcwd() + '/src/'
+import numpy as np
 
 
 def load_data(ds, **kwargs):
 
-	
-	pg_hook = PostgresHook(postgres_conn_id='weather_id')
-	print pg_hook.get_records("SELECT * FROM birth_data_table limit 1")
+	pg_hook  = PostgresHook(postgres_conn_id='weather_id')
 
+	file_name = str(datetime.now().date()) + '.json'
+	tot_name = os.path.join(os.path.dirname(__file__),'src/data', file_name)
 
+	with open(tot_name, 'r') as inputfile:
+		doc = json.load(inputfile)
 
+	city        = str(doc['name'])
+	country     = str(doc['sys']['country'])
+	lat         = float(doc['coord']['lat'])
+	lon         = float(doc['coord']['lon'])
+	humid       = float(doc['main']['humidity'])
+	press       = float(doc['main']['pressure'])
+	min_temp    = float(doc['main']['temp_min']) - 273.15
+	max_temp    = float(doc['main']['temp_max']) - 273.15
+	temp        = float(doc['main']['temp']) - 273.15
+	weather     = str(doc['weather'][0]['description'])
+	todays_date = datetime.now().date()
 
+	valid_data  = True
+	for valid in np.isnan([lat, lon, humid, press, min_temp, max_temp, temp]):
+		if valid is False:
+			valid_data = False
+			break;
+
+	row  =  (city, country, lat, lon, todays_date, humid, press, min_temp,
+			max_temp, temp, weather)
+
+	insert_cmd = """INSERT INTO weather_table 
+					(city, 
+					country, 
+					latitude, 
+					longitude,
+					todays_date, 
+					humudity, 
+					pressure, 
+					min_temp, 
+					max_temp, 
+					temp, 
+					weather)
+					VALUES
+					(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
+
+	if valid_data is True:
+		pg_hook.run(insert_cmd, parameters=row)
 
 
 default_args = {
@@ -36,8 +73,8 @@ default_args = {
 dag = DAG(
 		  'weatherDag',
 		  default_args=default_args,
-		  start_date=datetime(2017,8,24)#,
-		  #schedule_interval=timedelta(minutes=1)
+		  start_date=datetime(2017,8,24),
+		  schedule_interval=timedelta(minutes=1440)
 		  )
 
 
@@ -50,7 +87,7 @@ task1 = BashOperator(
 
 task2 =  PythonOperator(task_id='transform_load',
 	                   provide_context=True,
-	                   python_callable=get_rates,
+	                   python_callable=load_data,
 	                   dag=dag)
 
 

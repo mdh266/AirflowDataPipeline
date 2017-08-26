@@ -14,8 +14,9 @@ def get_weather():
 
 		json_data = result.json()
 
-		file_name  = 'unprocessed_data.json'
-		tot_name   = os.path.join(os.path.dirname(__file__), 'unprocessed', file_name)
+
+		file_name  = str(datetime.now().date()) + '.json'
+		tot_name   = os.path.join(os.path.dirname(__file__), 'data', file_name)
 
 		print tot_name
 
