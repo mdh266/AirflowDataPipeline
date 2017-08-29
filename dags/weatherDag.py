@@ -47,17 +47,9 @@ def load_data(ds, **kwargs):
 			max_temp, temp, weather)
 
 	insert_cmd = """INSERT INTO weather_table 
-					(city, 
-					country, 
-					latitude, 
-					longitude,
-					todays_date, 
-					humidity, 
-					pressure, 
-					min_temp, 
-					max_temp, 
-					temp, 
-					weather)
+					(city, country, latitude, longitude,
+					todays_date, humidity, pressure, 
+					min_temp, max_temp, temp, weather)
 					VALUES
 					(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"""
 
@@ -80,7 +72,7 @@ default_args = {
 # Define the dag, the start date and how frequently it runs.
 # I chose the dag to run everday by using 1440 minutes.
 dag = DAG(
-		'weatherDag',
+		dag_id='weatherDag',
 		default_args=default_args,
 		start_date=datetime(2017,8,24),
 		schedule_interval=timedelta(minutes=1440))
@@ -94,7 +86,8 @@ task1 = BashOperator(
 
 
 # Second task is to process the data and load into the database.
-task2 =  PythonOperator(task_id='transform_load',
+task2 =  PythonOperator(
+			task_id='transform_load',
 			provide_context=True,
 			python_callable=load_data,
 			dag=dag)
