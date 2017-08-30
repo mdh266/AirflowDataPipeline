@@ -1,6 +1,6 @@
-# Airflow
+# Airflow Data Pipeline
 
-This example walks through how to set up an ETL pipeline using <a href="https://airflow.incubator.apache.org/">Airflow</a>. I set up at DAG to query the <a href="https://openweathermap.org/">openweathermap.org</a> API everyday, process the json data and store it in a <a href="https://www.postgresql.org/">PostgreSQL</a> database.
+This example walks through how to set up an ETL pipeline using <a href="https://airflow.incubator.apache.org/">Airflow</a>. I set up at DAG to query the <a href="https://openweathermap.org/">openweathermap.org</a> API everyday, process the json data and store it in a <a href="https://www.postgresql.org/">PostgreSQL</a> database.  For explanation of how this code works see this <a href="http://michael-harmon.com/blog/AirflowETL.html">blog post</a>
 
 ## Requirements
 
